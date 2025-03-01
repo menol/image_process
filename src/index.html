@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片优化工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="app-header">
+            <div class="logo-container">
+                <i class="fas fa-image logo-icon"></i>
+                <div class="title-container">
+                    <h1>图片优化工具</h1>
+                    <p class="subtitle">本地处理，高效压缩</p>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button id="theme-toggle" class="theme-toggle" title="切换主题">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 侧边栏：上传和选项 -->
+            <aside class="sidebar">
+                <!-- 上传区域 -->
+                <div class="upload-container card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-upload"></i> 上传图片</h2>
+                    </div>
+                    
+                    <div class="drop-area" id="drop-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>拖放图片到这里或点击上传</p>
+                        <button class="btn primary-btn" id="upload-btn">选择图片</button>
+                        <input type="file" id="file-input" class="file-input" accept="image/*" multiple>
+                    </div>
+                    
+                    <div class="upload-info" id="upload-info">
+                        <p class="files-count" id="files-count">已选择 <span>0</span> 个文件</p>
+                    </div>
+                </div>
+                
+                <!-- 处理选项 -->
+                <div class="options-container card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-sliders-h"></i> 处理选项</h2>
+                    </div>
+                    
+                    <div class="options-form">
+                        <div class="form-group">
+                            <label for="format-select">输出格式</label>
+                            <select id="format-select" class="custom-select">
+                                <option value="jpeg">JPEG</option>
+                                <option value="png">PNG</option>
+                                <option value="webp">WebP</option>
+                                <option value="gif">GIF</option>
+                                <option value="png-to-webp">PNG转WebP</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quality-range">压缩质量</label>
+                            <div class="range-container">
+                                <input type="range" id="quality-range" min="1" max="100" value="85">
+                                <span class="range-value" id="quality-value">85%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="max-width-input">最大宽度</label>
+                            <input type="number" id="max-width-input" placeholder="原始宽度">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="max-height-input">最大高度</label>
+                            <input type="number" id="max-height-input" placeholder="原始高度">
+                        </div>
+                        
+                        <div class="switch-group">
+                            <label for="strip-metadata">移除元数据</label>
+                            <label class="switch">
+                                <input type="checkbox" id="strip-metadata">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="switch-group">
+                            <label for="optimize">智能优化</label>
+                            <label class="switch">
+                                <input type="checkbox" id="optimize">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                </div>
+            </aside>
+            
+            <!-- 主内容区：图片列表和预览 -->
+            <div class="content-area">
+                <!-- 切换视图按钮 -->
+                <div class="view-controls card">
+                    <div class="btn-group">
+                        <button class="btn view-btn active" data-view="grid">
+                            <i class="fas fa-th"></i> 网格视图
+                        </button>
+                        <button class="btn view-btn" data-view="list">
+                            <i class="fas fa-list"></i> 列表视图
+                        </button>
+                  
+                    </div>
+                    <button class="btn primary-btn btn-block" id="process-btn" disabled>处理图片</button>
+
+                    <div class="action-controls">
+                        <button class="btn success-btn" id="download-all-btn" disabled>
+                            <i class="fas fa-download"></i> 下载全部
+                        </button>
+                        <button class="btn danger-btn" id="clear-all-btn" disabled>
+                            <i class="fas fa-trash"></i> 清空
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 处理状态和进度条 -->
+                <div class="processing-status card" id="loading-indicator">
+                    <div class="progress-container">
+                        <div class="progress-info">
+                            <span>处理进度</span>
+                            <span id="progress-text">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progress-bar"></div>
+                        </div>
+                    </div>
+                    <button class="btn danger-btn" id="cancel-btn">取消处理</button>
+                </div>
+                
+                <!-- 图片显示区域 -->
+                <div class="images-container">
+                    <!-- 网格视图 -->
+                    <div class="view-panel grid-view active" id="grid-view">
+                        <div class="images-grid" id="images-grid">
+                            <!-- 图片卡片将被JS动态添加 -->
+                            <div class="empty-state">
+                                <i class="fas fa-images"></i>
+                                <p>上传图片后将在此显示</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 列表视图 -->
+                    <div class="view-panel list-view" id="list-view">
+                        <table class="images-table">
+                            <thead>
+                                <tr>
+                                    <th>预览</th>
+                                    <th>文件名</th>
+                                    <th>原始大小</th>
+                                    <th>处理后大小</th>
+                                    <th>压缩率</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="images-list">
+                                <!-- 图片行将被JS动态添加 -->
+                            </tbody>
+                        </table>
+                        <div class="empty-state">
+                            <i class="fas fa-list"></i>
+                            <p>上传图片后将在此显示</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 对比视图 -->
+                    <div class="view-panel compare-view" id="compare-view">
+                        <div class="image-comparison-container" id="image-comparison">
+                            <div class="comparison-slider-container">
+                                <div class="before-image" id="original-preview-large">
+                                    <p>未选择图片</p>
+                                </div>
+                                <div class="after-image" id="processed-preview-large">
+                                    <p>等待处理</p>
+                                </div>
+                                <div class="comparison-slider">
+                                    <div class="slider-handle">
+                                        <i class="fas fa-arrows-alt-h"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="comparison-info">
+                                <div class="comparison-side">
+                                    <h3>原始图片</h3>
+                                    <div class="info-item">
+                                        <i class="fas fa-expand-arrows-alt"></i>
+                                        <span id="original-size">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-weight"></i>
+                                        <span id="original-file-size">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-file-image"></i>
+                                        <span id="original-format">-</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="comparison-middle">
+                                    <div class="comparison-ratio" id="comparison-ratio">
+                                        <span>-</span>
+                                        <small>节省</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="comparison-side">
+                                    <h3>处理后图片</h3>
+                                    <div class="info-item">
+                                        <i class="fas fa-expand-arrows-alt"></i>
+                                        <span id="processed-size">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-weight"></i>
+                                        <span id="processed-file-size">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-file-image"></i>
+                                        <span id="processed-format">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="thumbnails-container" id="thumbnails-container">
+                                <!-- 缩略图将被JS动态添加 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="error-message" id="error-message"></div>
+            </div>
+        </main>
+        
+        <footer class="app-footer">
+            <p>基于Tauri和Rust技术 | <i class="fas fa-shield-alt"></i> 本地处理，保护您的隐私</p>
+        </footer>
+    </div>
+    
+    <script type="module" src="/main.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</body>
+</html>
